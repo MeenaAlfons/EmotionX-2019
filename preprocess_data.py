@@ -1,6 +1,7 @@
 
 import json
 import os
+import sys
 import random
 from preproccess import tokenize
 
@@ -65,7 +66,7 @@ def merge_files(file_path1, file_path2, output_dir, output_file_name):
 
 if __name__ == '__main__':
 
-    DATA_PATH = "E:\\AlexU\\master\\NLP&DL\\project\\EmotionX 2019 datasets"
+    DATA_PATH = sys.argv[1]
     friend_data_path = os.path.join(DATA_PATH, 'Friends')
     emotionpush_data_path = os.path.join(DATA_PATH, 'EmotionPush')
     output_dir = os.path.join(DATA_PATH, "preprocessed")
