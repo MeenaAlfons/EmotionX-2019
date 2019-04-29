@@ -24,11 +24,11 @@ def preprocess_train_dev(data_path, file_name, output_dir):
             # item['utterance'] = item['utterance']
 
     # Split train & dev
-    seed = 1234
     train = []
     dev = []
     num_diag = len(source)
     indeces = list(range(0, num_diag))
+    random.seed(1234)
     random.shuffle(indeces)
     dev_end = int(0.1 * num_diag)
 
