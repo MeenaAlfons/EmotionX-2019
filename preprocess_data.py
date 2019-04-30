@@ -36,7 +36,7 @@ def preprocess_train_dev(data_path, file_name, output_dir):
     random.seed(1234)
     random.shuffle(indeces)
     dev_end = int(0.1 * num_diag)
-    smaller_dev_end = min(dev_end, 25)
+    smaller_dev_end = min(dev_end, 5)
 
     for i in range(0, dev_end):
         dev.append(source[i])
