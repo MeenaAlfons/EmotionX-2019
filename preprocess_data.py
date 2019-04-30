@@ -42,7 +42,7 @@ def preprocess_train_dev(data_path, file_name, output_dir):
         dev.append(source[i])
 
     for i in range(0, smaller_dev_end):
-        dev.append(source[i])
+        smaller_dev.append(source[i])
 
     for i in range(dev_end, num_diag):
         train.append(source[i])
