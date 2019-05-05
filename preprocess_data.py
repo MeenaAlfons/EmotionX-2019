@@ -40,7 +40,7 @@ def preprocess_train_dev(data_path, file_name, output_dir):
     dev_end = int(0.1 * num_diag)
     smaller_dev_end = min(dev_end, 5)
 
-    train_1_end = dev_end + (num_diag - dev_end) / 2
+    train_1_end = int(dev_end + (num_diag - dev_end) / 2)
 
     for i in range(0, dev_end):
         dev.append(source[i])
