@@ -29,6 +29,8 @@ def preprocess_train_dev(data_path, file_name, output_dir):
 
     # Split train & dev
     train = []
+    train_1 = []
+    train_2 = []
     dev = []    
     smaller_dev = []
     num_diag = len(source)
@@ -37,6 +39,8 @@ def preprocess_train_dev(data_path, file_name, output_dir):
     random.shuffle(indeces)
     dev_end = int(0.1 * num_diag)
     smaller_dev_end = min(dev_end, 5)
+
+    train_1_end = dev_end + (num_diag - dev_end) / 2
 
     for i in range(0, dev_end):
         dev.append(source[i])
@@ -47,10 +51,22 @@ def preprocess_train_dev(data_path, file_name, output_dir):
     for i in range(dev_end, num_diag):
         train.append(source[i])
 
+    for i in range(dev_end, train_1_end):
+        train_1.append(source[i])
+        
+    for i in range(train_1_end, num_diag):
+        train_2.append(source[i])
+        
     # Write output
     train_file_path = os.path.join(output_dir, "{}_{}".format("train", file_name))
     writeJson(train, train_file_path)
     
+    train_1_file_path = os.path.join(output_dir, "{}_{}".format("train_1", file_name))
+    writeJson(train_1, train_1_file_path)
+    
+    train_2_file_path = os.path.join(output_dir, "{}_{}".format("train_2", file_name))
+    writeJson(train_2, train_2_file_path)
+
     dev_file_path = os.path.join(output_dir, "{}_{}".format("dev", file_name))
     writeJson(dev, dev_file_path)
     
@@ -58,7 +74,7 @@ def preprocess_train_dev(data_path, file_name, output_dir):
     writeJson(smaller_dev, smaller_dev_file_path)
     
     print('Successfully preprocessed ({} dialogues, {} utterances)'.format(num_diag, num_utterances))
-    return train_file_path, dev_file_path, smaller_dev_file_path
+    return train_file_path, dev_file_path, smaller_dev_file_path, train_1_file_path, train_2_file_path
 
 def merge_files(file_path1, file_path2, output_dir, output_file_name):
 
@@ -83,12 +99,14 @@ if __name__ == '__main__':
 
     # train & dev
     print("Preprocess train and dev data")
-    friends_train_file, friends_dev_file, friends_smaller_dev_file = preprocess_train_dev(friend_data_path, 'friends.json', output_dir)
-    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file = preprocess_train_dev(emotionpush_data_path, 'emotionpush.json', output_dir)
+    friends_train_file, friends_dev_file, friends_smaller_dev_file, friends_train_1, friends_train_2 = preprocess_train_dev(friend_data_path, 'friends.json', output_dir)
+    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file, emotionpush_train_1, emotionpush_train_2 = preprocess_train_dev(emotionpush_data_path, 'emotionpush.json', output_dir)
 
     # Combine Friends & EmotionPush
     print("Combine Friends & EmotionPush data")
     merge_files(friends_train_file, emotionpush_train_file, output_dir, "train.json")
+    merge_files(friends_train_1, emotionpush_train_1, output_dir, "train_1.json")
+    merge_files(friends_train_2, emotionpush_train_2, output_dir, "train_2.json")
     merge_files(friends_dev_file, emotionpush_dev_file, output_dir, "dev.json")
     merge_files(friends_smaller_dev_file, emotionpush_smaller_dev_file, output_dir, "smaller_dev.json")
     
