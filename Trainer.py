@@ -199,14 +199,14 @@ class Trainer(object):
     def prepare_train_examples(self):
         self.train_examples = self.processor.get_train_examples(self.args.data_dir)
         self.num_train_optimization_steps = int(
-            len(train_examples) / self.args.train_batch_size / self.args.gradient_accumulation_steps) * self.args.num_train_epochs
+            len(self.train_examples) / self.args.train_batch_size / self.args.gradient_accumulation_steps) * self.args.num_train_epochs
         if self.args.local_rank != -1:
             self.num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
         self.label_weights = self.processor.get_weights()
         print("label_weights = {}".format(label_weights))
     
         train_features = convert_examples_to_features(
-            train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
+            self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
@@ -226,7 +226,7 @@ class Trainer(object):
     def preprare_eval_examples(self):
         self.eval_examples = self.processor.get_dev_examples(self.args.data_dir)
         self.eval_features = convert_examples_to_features(
-            eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
+            self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
         all_input_ids = torch.tensor([f.input_ids for f in self.eval_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in self.eval_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in self.eval_features], dtype=torch.long)
@@ -243,7 +243,7 @@ class Trainer(object):
 
     def train(self):
         self.logger.info("***** Running training *****")
-        self.logger.info("  Num examples = %d", len(train_examples))
+        self.logger.info("  Num examples = %d", len(self.train_examples))
         self.logger.info("  Batch size = %d", self.args.train_batch_size)
         self.logger.info("  Num steps = %d", num_train_optimization_steps)
 
