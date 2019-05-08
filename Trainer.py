@@ -44,9 +44,9 @@ class Trainer:
 
 
     def evaluate(self, print_preds):
-        logger.info("***** Running evaluation *****")
-        logger.info("  Num examples = %d", len(self.eval_examples))
-        logger.info("  Batch size = %d", self.args.eval_batch_size)
+        self.logger.info("***** Running evaluation *****")
+        self.logger.info("  Num examples = %d", len(self.eval_examples))
+        self.logger.info("  Batch size = %d", self.args.eval_batch_size)
 
         self.model.eval()
         eval_loss = 0
@@ -100,9 +100,9 @@ class Trainer:
     def save_result(self, result, epoch_output_dir):
         output_eval_file = os.path.join(epoch_output_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
-            logger.info("***** Eval results *****")
+            self.logger.info("***** Eval results *****")
             for key in sorted(result.keys()):
-                logger.info("  %s = %s", key, str(result[key]))
+                self.logger.info("  %s = %s", key, str(result[key]))
                 writer.write("%s = %s\n" % (key, str(result[key])))
 
     def preprare_distant_debugging(self):
@@ -129,7 +129,7 @@ class Trainer:
                             datefmt = '%m/%d/%Y %H:%M:%S',
                             level = logging.INFO if self.args.local_rank in [-1, 0] else logging.WARN)
 
-        logger.info("device: {} n_gpu: {}, distributed training: {}, 16-bits training: {}".format(
+        self.logger.info("device: {} n_gpu: {}, distributed training: {}, 16-bits training: {}".format(
             self.device, self.n_gpu, bool(self.args.local_rank != -1), self.args.fp16))
 
     def seed(self):
@@ -242,10 +242,10 @@ class Trainer:
         self.eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
 
     def train(self):
-        logger.info("***** Running training *****")
-        logger.info("  Num examples = %d", len(train_examples))
-        logger.info("  Batch size = %d", self.args.train_batch_size)
-        logger.info("  Num steps = %d", num_train_optimization_steps)
+        self.logger.info("***** Running training *****")
+        self.logger.info("  Num examples = %d", len(train_examples))
+        self.logger.info("  Batch size = %d", self.args.train_batch_size)
+        self.logger.info("  Num steps = %d", num_train_optimization_steps)
 
         
         if self.output_mode == "classification":
