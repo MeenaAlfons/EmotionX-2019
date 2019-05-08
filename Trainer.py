@@ -21,10 +21,9 @@ from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule 
 
 from utils import compute_metrics, convert_examples_to_features
 
-class Trainer:
+class Trainer(object):
 
     def __init__(self, args):
-        self.logger = logging.getLogger(__name__)
         self.args = args
 
     def save_model(self, model, tokenizer, output_dir):
