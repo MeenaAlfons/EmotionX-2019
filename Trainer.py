@@ -382,9 +382,9 @@ class Trainer(object):
         self.label_list = self.processor.get_labels()
         self.num_labels = len(self.label_list)
 
-        self.prepare_train_examples()
-
         self.prepare_model()
+
+        self.prepare_train_examples()
 
         self.prepare_optimizer()
 
