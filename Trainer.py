@@ -380,7 +380,7 @@ class Trainer(object):
         self.output_mode = self.args.output_mode
 
         self.label_list = self.processor.get_labels()
-        self.num_labels = len(label_list)
+        self.num_labels = len(self.label_list)
 
         self.prepare_train_examples()
 
