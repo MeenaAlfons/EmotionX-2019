@@ -3,7 +3,7 @@ import json
 
 import numpy as np
 
-from utils import InputExample
+from utils import InputExample, DataProcessor
 
 class EmotionX2019Processor(DataProcessor):
     """Processor for the RTE data set (GLUE version)."""
