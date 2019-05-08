@@ -64,7 +64,7 @@ class Trainer(object):
             # create eval loss and other metric required by the task
             if self.output_mode == "classification":
                 loss_fct = CrossEntropyLoss()
-                tmp_eval_loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
+                tmp_eval_loss = loss_fct(logits.view(-1, self.num_labels), label_ids.view(-1))
             elif self.output_mode == "regression":
                 loss_fct = MSELoss()
                 tmp_eval_loss = loss_fct(logits.view(-1), label_ids.view(-1))
@@ -96,8 +96,8 @@ class Trainer(object):
         result['eval_loss'] = eval_loss
         return result
 
-    def save_result(self, result, epoch_output_dir):
-        output_eval_file = os.path.join(epoch_output_dir, "eval_results.txt")
+    def save_result(self, result, output_eval_dir):
+        output_eval_file = os.path.join(output_eval_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
             self.logger.info("***** Eval results *****")
             for key in sorted(result.keys()):
@@ -153,6 +153,8 @@ class Trainer(object):
         if self.args.fp16:
             self.model.half()
             
+        print(self.device)
+            
         self.model.to(self.device)
         
         if self.args.local_rank != -1:
@@ -201,12 +203,12 @@ class Trainer(object):
         self.num_train_optimization_steps = int(
             len(self.train_examples) / self.args.train_batch_size / self.args.gradient_accumulation_steps) * self.args.num_train_epochs
         if self.args.local_rank != -1:
-            self.num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
+            self.num_train_optimization_steps = self.num_train_optimization_steps // torch.distributed.get_world_size()
         self.label_weights = self.processor.get_weights()
         print("label_weights = {}".format(self.label_weights))
     
         train_features = convert_examples_to_features(
-            self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
+            self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode, self.logger)
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
@@ -226,17 +228,17 @@ class Trainer(object):
     def preprare_eval_examples(self):
         self.eval_examples = self.processor.get_dev_examples(self.args.data_dir)
         self.eval_features = convert_examples_to_features(
-            self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
+            self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode, self.logger)
         all_input_ids = torch.tensor([f.input_ids for f in self.eval_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in self.eval_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in self.eval_features], dtype=torch.long)
 
         if self.output_mode == "classification":
-            all_label_ids = torch.tensor([f.label_id for f in self.eval_features], dtype=torch.long)
+            self.eval_all_label_ids = torch.tensor([f.label_id for f in self.eval_features], dtype=torch.long)
         elif self.output_mode == "regression":
-            all_label_ids = torch.tensor([f.label_id for f in self.eval_features], dtype=torch.float)
+            self.eval_all_label_ids = torch.tensor([f.label_id for f in self.eval_features], dtype=torch.float)
 
-        eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+        eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, self.eval_all_label_ids)
         # Run prediction for full data
         eval_sampler = SequentialSampler(eval_data)
         self.eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
@@ -245,7 +247,7 @@ class Trainer(object):
         self.logger.info("***** Running training *****")
         self.logger.info("  Num examples = %d", len(self.train_examples))
         self.logger.info("  Batch size = %d", self.args.train_batch_size)
-        self.logger.info("  Num steps = %d", num_train_optimization_steps)
+        self.logger.info("  Num steps = %d", self.num_train_optimization_steps)
 
         
         if self.output_mode == "classification":
@@ -300,7 +302,7 @@ class Trainer(object):
 
 #                 start_time = time.time()
                 if self.output_mode == "classification":
-                    loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
+                    loss = loss_fct(logits.view(-1, self.num_labels), label_ids.view(-1))
                 elif self.output_mode == "regression":
                     loss = loss_fct(logits.view(-1), label_ids.view(-1))
 
@@ -325,7 +327,7 @@ class Trainer(object):
                     if self.args.fp16:
                         # modify learning rate with special warm up BERT uses
                         # if self.args.fp16 is False, BertAdam is used that handles this automatically
-                        lr_this_step = self.args.learning_rate * warmup_schedule.get_lr(global_step/num_train_optimization_steps)
+                        lr_this_step = self.args.learning_rate * warmup_schedule.get_lr(global_step/self.num_train_optimization_steps)
 #                         lr_this_step = self.args.learning_rate * warmup_linear(global_step/num_train_optimization_steps, self.args.warmup_proportion)
                         for param_group in self.optimizer.param_groups:
                             param_group['lr'] = lr_this_step
@@ -395,6 +397,4 @@ class Trainer(object):
 
         if self.args.do_eval and (self.args.local_rank == -1 or torch.distributed.get_rank() == 0):
             result = self.evaluate(True)
-            
-            output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
-            self.save_result(result, output_eval_file)
+            self.save_result(result, args.output_dir)
