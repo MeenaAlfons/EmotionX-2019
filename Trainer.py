@@ -203,7 +203,7 @@ class Trainer(object):
         if self.args.local_rank != -1:
             self.num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
         self.label_weights = self.processor.get_weights()
-        print("label_weights = {}".format(label_weights))
+        print("label_weights = {}".format(self.label_weights))
     
         train_features = convert_examples_to_features(
             self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode)
