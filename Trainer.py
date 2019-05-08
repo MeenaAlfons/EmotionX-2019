@@ -129,6 +129,7 @@ class Trainer:
                             datefmt = '%m/%d/%Y %H:%M:%S',
                             level = logging.INFO if self.args.local_rank in [-1, 0] else logging.WARN)
 
+        self.logger = logging.getLogger(__name__)
         self.logger.info("device: {} n_gpu: {}, distributed training: {}, 16-bits training: {}".format(
             self.device, self.n_gpu, bool(self.args.local_rank != -1), self.args.fp16))
 
