@@ -81,7 +81,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
 
 
 def convert_examples_to_features(examples, label_list, max_seq_length,
-                                tokenizer, output_mode, logger, input_length_arr):
+                                tokenizer, output_mode, logger, input_length_arr, truncate_seq_pair=_truncate_seq_pair):
     """Loads a data file into a list of `InputBatch`s."""
 
     label_map = {label : i for i, label in enumerate(label_list)}
@@ -100,7 +100,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
             # Modifies `tokens_a` and `tokens_b` in place so that the total
             # length is less than the specified length.
             # Account for [CLS], [SEP], [SEP] with "- 3"
-            _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
+            truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
         else:
             input_length_arr.append(len(tokens_a))
             # Account for [CLS] and [SEP] with "- 2"
