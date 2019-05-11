@@ -50,6 +50,7 @@ class Trainer(object):
         self.model.eval()
         eval_loss = 0
         nb_eval_steps = 0
+        nb_eval_examples = 0
         preds = []
 
         for input_ids, input_mask, segment_ids, label_ids in tqdm(self.eval_dataloader, desc="Evaluating"):
@@ -71,6 +72,7 @@ class Trainer(object):
 
             eval_loss += tmp_eval_loss.mean().item()
             nb_eval_steps += 1
+            nb_eval_examples += input_ids.size(0)
             logits = logits.detach().cpu().numpy()
             
             if len(preds) == 0:
@@ -80,6 +82,7 @@ class Trainer(object):
                     preds[0], logits, axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
+        eval_loss_examples = eval_loss / nb_eval_examples
         preds = preds[0]
         if self.output_mode == "classification":
             preds = np.argmax(preds, axis=1)
@@ -94,6 +97,7 @@ class Trainer(object):
                 print("i = {}\t\tPredicted = {}\t\tActual = {}".format(i, pred, eval_all_label_ids_numpy[i]))
 
         result['eval_loss'] = eval_loss
+        result['eval_loss_examples'] = eval_loss_examples
         return result
 
     def save_result(self, result, output_eval_dir):
@@ -140,16 +144,15 @@ class Trainer(object):
             torch.cuda.manual_seed_all(self.args.seed)
 
     def prepare_model(self):
-        if self.args.resume_dir:
-            self.model = BertForSequenceClassification.from_pretrained(self.args.resume_dir, num_labels=self.num_labels)
-            self.tokenizer = BertTokenizer.from_pretrained(self.args.resume_dir, do_lower_case=self.args.do_lower_case)
-        else:
-            self.tokenizer = BertTokenizer.from_pretrained(self.args.bert_model, do_lower_case=self.args.do_lower_case)
-            cache_dir = self.args.cache_dir if self.args.cache_dir else os.path.join(str(PYTORCH_PRETRAINED_BERT_CACHE), 'distributed_{}'.format(self.args.local_rank))
-            self.model = BertForSequenceClassification.from_pretrained(self.args.bert_model,
-                    cache_dir=cache_dir,
-                    num_labels=self.num_labels)
+        model_dir = self.args.resume_dir if self.args.resume_dir else self.args.bert_model
+        cache_dir = self.args.cache_dir if self.args.cache_dir else os.path.join(str(PYTORCH_PRETRAINED_BERT_CACHE), 'distributed_{}'.format(self.args.local_rank))
 
+        self.model = BertForSequenceClassification.from_pretrained(model_dir,
+                                                                   cache_dir=cache_dir,
+                                                                   num_labels=self.num_labels)
+        
+        self.tokenizer = BertTokenizer.from_pretrained(model_dir, do_lower_case=self.args.do_lower_case)
+        
         if self.args.fp16:
             self.model.half()
             
@@ -196,8 +199,9 @@ class Trainer(object):
             self.optimizer = BertAdam(optimizer_grouped_parameters,
                                 lr=self.args.learning_rate,
                                 warmup=self.args.warmup_proportion,
-                                t_total=self.num_train_optimization_steps)
-
+                                t_total=self.num_train_optimization_steps,
+                                weight_decay=0.01)
+        
     def prepare_train_examples(self):
         self.train_examples = self.processor.get_train_examples(self.args.data_dir)
         self.num_train_optimization_steps = int(
@@ -207,12 +211,29 @@ class Trainer(object):
         self.label_weights = self.processor.get_weights()
         print("label_weights = {}".format(self.label_weights))
     
-        train_features = convert_examples_to_features(
-            self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode, self.logger)
+        input_length_arr = []
+        if self.processor.is_pair():
+            truncate_seq_pair = lambda tokens_a, tokens_b, max_length : self.processor.truncate_seq_pair(tokens_a, tokens_b, max_length)
+            train_features = convert_examples_to_features(
+                self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr,
+                truncate_seq_pair=truncate_seq_pair)
+        else:
+            train_features = convert_examples_to_features(
+                self.train_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr)
+            
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
 
+        input_length_arr = np.array(input_length_arr)
+        print("Train input_length_arr: max={}, min={}, avg={}".format(np.max(input_length_arr),
+                                                                      np.min(input_length_arr),
+                                                                      np.mean(input_length_arr)))
+        
         if self.output_mode == "classification":
             all_label_ids = torch.tensor([f.label_id for f in train_features], dtype=torch.long)
         elif self.output_mode == "regression":
@@ -227,12 +248,31 @@ class Trainer(object):
 
     def preprare_eval_examples(self):
         self.eval_examples = self.processor.get_dev_examples(self.args.data_dir)
-        self.eval_features = convert_examples_to_features(
-            self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode, self.logger)
+                      
+        input_length_arr = []
+        if self.processor.is_pair():
+            truncate_seq_pair = lambda tokens_a, tokens_b, max_length : self.processor.truncate_seq_pair(tokens_a, tokens_b, max_length)
+            self.eval_features = convert_examples_to_features(
+                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr,
+                truncate_seq_pair=truncate_seq_pair)
+        else:
+            self.eval_features = convert_examples_to_features(
+                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr)
+            
         all_input_ids = torch.tensor([f.input_ids for f in self.eval_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in self.eval_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in self.eval_features], dtype=torch.long)
 
+        
+        input_length_arr = np.array(input_length_arr)  
+        print("Eval input_length_arr: max={}, min={}, avg={}".format(np.max(input_length_arr),
+                                                                     np.min(input_length_arr),
+                                                                     np.mean(input_length_arr)))
+        
         if self.output_mode == "classification":
             self.eval_all_label_ids = torch.tensor([f.label_id for f in self.eval_features], dtype=torch.long)
         elif self.output_mode == "regression":
@@ -352,6 +392,7 @@ class Trainer(object):
             # Evaluate Epoch
             result = self.evaluate(False)
             result['tr_loss'] = tr_loss/nb_tr_steps
+            result['tr_loss_examples'] = tr_loss/nb_tr_examples
             self.save_result(result, epoch_output_dir)
             
         
@@ -396,5 +437,5 @@ class Trainer(object):
             self.train()
 
         if self.args.do_eval and (self.args.local_rank == -1 or torch.distributed.get_rank() == 0):
-            result = self.evaluate(True)
+            result = self.evaluate(False)
             self.save_result(result, args.output_dir)
