@@ -25,6 +25,12 @@ def preprocess_train_dev(data_path, file_name, output_dir):
         num_utterances += len(diag)
         for item in diag:
             item['utterance'] = tokenize(item['utterance'])
+            if 'utterance_de' in item:
+                item['utterance_de'] = tokenize(item['utterance_de'])
+            if 'utterance_fr' in item:
+                item['utterance_fr'] = tokenize(item['utterance_fr'])
+            if 'utterance_it' in item:
+                item['utterance_it'] = tokenize(item['utterance_it'])
             # item['utterance'] = item['utterance']
 
     # Split train & dev
@@ -99,8 +105,8 @@ if __name__ == '__main__':
 
     # train & dev
     print("Preprocess train and dev data")
-    friends_train_file, friends_dev_file, friends_smaller_dev_file, friends_train_1, friends_train_2 = preprocess_train_dev(friend_data_path, 'friends.json', output_dir)
-    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file, emotionpush_train_1, emotionpush_train_2 = preprocess_train_dev(emotionpush_data_path, 'emotionpush.json', output_dir)
+    friends_train_file, friends_dev_file, friends_smaller_dev_file, friends_train_1, friends_train_2 = preprocess_train_dev(friend_data_path, 'friends.augmented.json', output_dir)
+    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file, emotionpush_train_1, emotionpush_train_2 = preprocess_train_dev(emotionpush_data_path, 'emotionpush.augmented.json', output_dir)
 
     # Combine Friends & EmotionPush
     print("Combine Friends & EmotionPush data")
