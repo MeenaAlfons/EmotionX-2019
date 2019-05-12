@@ -23,7 +23,11 @@ class InputExample(object):
         self.text_a = text_a
         self.text_b = text_b
         self.label = label
-        
+    
+    def __repr__(self):
+        return "InputExample()"
+    def __str__(self):
+        return "text_a={} text_b={} label={}".format(text_a, text_b, label)
         
 class InputFeatures(object):
     """A single set of features of data."""
