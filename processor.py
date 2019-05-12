@@ -413,7 +413,7 @@ class Majority_OneSentence_Processor(BaseProcessor):
     def save_dev(self, data_dir, examples, preds):
         self.save(
             os.path.join(data_dir, "dev.json"),
-            os.path.join(data_dir, "result_dev.json"),
+            os.path.join(data_dir, "result_majority_dev.json"),
             examples,
             preds
             )
@@ -426,15 +426,16 @@ class Majority_OneSentence_Processor(BaseProcessor):
             result = json.load(file)
         
         for i, pred in enumerate(preds):
-            print("i = {}\t\tguid = {}".format(i, examples[i].guid))
-            print("i = {}\t\tPredicted = {}\t\t{}".format(i, pred, labels[pred]))
-            print("i = {}\t\tActual = {}".format(i, examples[i].label))
+#             print("i = {}\t\tguid = {}".format(i, examples[i].guid))
+#             print("i = {}\t\tPredicted = {}\t\t{}".format(i, pred, labels[pred]))
+#             print("i = {}\t\tActual = {}".format(i, examples[i].label))
             guid_parts = examples[i].guid.split('-')
-            diag_idx = guid_parts[1]
-            item_idx = guid_parts[2]
-        
-            result[diag_idx][item_idx]['emotion'] = labels[pred]
-        
+            diag_idx = int(guid_parts[1])
+            item_idx = int(guid_parts[2])
+            
+            if labels[pred] == "yes":
+                result[diag_idx][item_idx]['emotion'] = "neutral" 
+            
         with open(result_file_name, 'w') as f:  
             json.dump(result, f)
     
@@ -465,4 +466,39 @@ class Others_OneSentence_Processor(BaseProcessor):
             
         return examples
 
+    def save_dev(self, data_dir, examples, preds):
+        self.save(
+            os.path.join(data_dir, "result_majority_dev.json"),
+            os.path.join(data_dir, "result_others_dev.json"),
+            examples,
+            preds
+            )
     
+    def save(self, source_file_name, result_file_name, examples, preds):
+        labels = self.get_labels()
+        result = []
+        
+        with open(source_file_name) as file:
+            result = json.load(file)
+        
+        for i, pred in enumerate(preds):
+#             print("i = {}\t\tguid = {}".format(i, examples[i].guid))
+#             print("i = {}\t\tPredicted = {}\t\t{}".format(i, pred, labels[pred]))
+#             print("i = {}\t\tActual = {}".format(i, examples[i].label))
+            guid_parts = examples[i].guid.split('-')
+            diag_idx = int(guid_parts[1])
+            item_idx = int(guid_parts[2])
+
+            result[diag_idx][item_idx]['emotion'] = labels[pred]
+            
+        with open(result_file_name, 'w') as f:  
+            json.dump(result, f)
+            
+
+class Others_OneSentence_Processor_Level_2(Others_OneSentence_Processor):
+    """Processor for the RTE data set (GLUE version)."""
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(os.path.join(data_dir, "result_majority_dev.json"), "dev", False)
+        
