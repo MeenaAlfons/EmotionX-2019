@@ -413,8 +413,8 @@ class Trainer(object):
 
         self.seed()
 
-        if not self.args.do_train and not self.args.do_eval:
-            raise ValueError("At least one of `do_train` or `do_eval` must be True.")
+        if not self.args.do_train and not self.args.do_eval and not self.args.do_run:
+            raise ValueError("At least one of `do_train`, `do_eval` or `do_run` must be True.")
 
         if os.path.exists(self.args.output_dir) and os.listdir(self.args.output_dir) and self.args.do_train:
             raise ValueError("Output directory ({}) already exists and is not empty.".format(self.args.output_dir))
