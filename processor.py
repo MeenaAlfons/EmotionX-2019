@@ -295,3 +295,159 @@ class Augmented_PrevSameSpeaker_Processor(EmotionX2019_TwoSequence_Processor):
             ])
         
         return examples
+
+
+class BaseProcessor(DataProcessor):
+    """Processor for the RTE data set (GLUE version)."""
+    
+    def get_train_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(os.path.join(data_dir, "train.json"), "train", True)
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(os.path.join(data_dir, "dev.json"), "dev", False)
+
+    def get_labels(self):
+        """See base class."""
+        raise NotImplementedError()
+      
+    def get_train_weights(self):
+        return self.get_weights('train')
+    
+    def get_weights(self, set_type):
+        labels = self.get_labels()
+        stats = self.stats[set_type]
+        augmented_stats = self.augmented_stats[set_type]
+        weights = []
+        augmented_weights = []
+        total = 0
+        augmented_total = 0
+        for i, label in enumerate(labels):
+            total += stats[label]
+            weights.append(stats[label])
+            augmented_total += augmented_stats[label]
+            augmented_weights.append(augmented_stats[label])
+        
+        print("weights = {}".format(weights))
+        print("total = {}".format(total))
+        
+        print("augmented weights= {}".format(augmented_weights))
+        print("augmented total = {}".format(augmented_total))
+        
+        weights = np.array(weights, np.double)
+        weights = total - weights
+        weights = weights / max(weights)
+        
+        augmented_weights = np.array(augmented_weights, np.double)
+        augmented_weights = augmented_total - augmented_weights
+        augmented_weights = augmented_weights / max(augmented_weights)
+        
+        print("Final weights = {}".format(weights))
+        print("Final augmented weights = {}".format(augmented_weights))
+        return weights, augmented_weights
+    
+    def is_pair(self):
+        return False
+      
+    def _create_examples(self, file_name, set_type, augmented):
+        """Creates examples for the training and dev sets."""   
+        print("Creating Examples ...................")
+        stats = {}
+        augmented_stats = {}
+        labels = self.get_labels()
+        for label in labels:
+            stats[label] = 0
+            augmented_stats[label] = 0
+        
+        examples = []     
+        with open(file_name) as file:
+            source = json.load(file)
+            for (i, diag) in enumerate(source):
+                for (j, item) in enumerate(diag):
+                    guid = "{}-{}-{}".format(set_type, i, j)
+                    item_examples = self._create_examples_of_item(guid, diag, j, set_type, augmented);
+                    examples.extend(item_examples)
+                    
+                    if len(item_examples) > 0:
+                        stats[item_examples[0].label] += 1
+                        augmented_stats[item_examples[0].label] += len(item_examples)
+                    
+        if not hasattr(self, 'stats'):
+            self.stats = {}
+            self.augmented_stats = {}
+            
+        self.stats[set_type] = stats
+        self.augmented_stats[set_type] = augmented_stats
+        return examples
+      
+    def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
+        raise NotImplementedError()
+
+
+class Majority_OneSentence_Processor(BaseProcessor):
+    """Processor for the RTE data set (GLUE version)."""
+
+    def get_labels(self):
+        """See base class."""
+        return ["yes", "no"]
+        
+    def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
+        item = diag[i]
+        text_a = item["utterance"]
+        label = "yes" if (item["emotion"] == "neutral") else "no"
+        
+        examples = [
+            InputExample(guid="{}-{}".format(guid, 'en'), text_a=item["utterance"], label=label),
+        ]
+        
+        if augmented:
+            examples.extend([
+                InputExample(guid="{}-{}".format(guid, 'fr'), text_a=item["utterance_fr"], label=label),
+                InputExample(guid="{}-{}".format(guid, 'de'), text_a=item["utterance_de"], label=label),
+                InputExample(guid="{}-{}".format(guid, 'it'), text_a=item["utterance_it"], label=label)
+            ])
+            
+        return examples
+    
+    def save(self, examples, preds):
+        labels = self.get_labels()
+        result = []
+        for i, pred in enumerate(preds):
+            print("i = {}\t\tguid = {}".format(i, examples[i].guid))
+            print("i = {}\t\tPredicted = {}\t\t{}".format(i, pred, labels[pred]))
+            print("i = {}\t\tActual = {}".format(i, examples[i].label))
+            guid_parts = examples[i].guid.split('-')
+            diag_idx = guid_parts[1]
+            item_idx = guid_parts[2]
+            
+
+    
+class Others_OneSentence_Processor(BaseProcessor):
+    """Processor for the RTE data set (GLUE version)."""
+
+    def get_labels(self):
+        """See base class."""
+        return ["non-neutral", "joy", "sadness", "surprise", "anger", "fear", "disgust"]
+        
+    def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
+        item = diag[i]
+        text_a = item["utterance"]
+        label = item["emotion"]
+        if label != "neutral":
+            examples = [
+                InputExample(guid="{}-{}".format(guid, 'en'), text_a=item["utterance"], label=label),
+            ]
+            
+            if augmented:
+                examples.extend([
+                    InputExample(guid="{}-{}".format(guid, 'fr'), text_a=item["utterance_fr"], label=label),
+                    InputExample(guid="{}-{}".format(guid, 'de'), text_a=item["utterance_de"], label=label),
+                    InputExample(guid="{}-{}".format(guid, 'it'), text_a=item["utterance_it"], label=label)
+                ])
+        else:
+            examples = []
+            
+        return examples
+
+    
