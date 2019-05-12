@@ -25,9 +25,9 @@ class InputExample(object):
         self.label = label
     
     def __repr__(self):
-        return "InputExample(text_a={} text_b={} label={})".format(text_a, text_b, label)
+        return "InputExample(text_a={} text_b={} label={})".format(self.text_a, self.text_b, self.label)
     def __str__(self):
-        return "text_a={} text_b={} label={}".format(text_a, text_b, label)
+        return "text_a={} text_b={} label={}".format(self.text_a, self.text_b, self.label)
         
 class InputFeatures(object):
     """A single set of features of data."""
