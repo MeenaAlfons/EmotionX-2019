@@ -208,7 +208,9 @@ class Trainer(object):
             len(self.train_examples) / self.args.train_batch_size / self.args.gradient_accumulation_steps) * self.args.num_train_epochs
         if self.args.local_rank != -1:
             self.num_train_optimization_steps = self.num_train_optimization_steps // torch.distributed.get_world_size()
-        self.label_weights = self.processor.get_weights()
+        
+        weights, augmented_weights = self.processor.get_train_weights()
+        self.label_weights = augmented_weights
         print("label_weights = {}".format(self.label_weights))
     
         input_length_arr = []
@@ -248,7 +250,7 @@ class Trainer(object):
 
     def preprare_eval_examples(self):
         self.eval_examples = self.processor.get_dev_examples(self.args.data_dir)
-                      
+        
         input_length_arr = []
         if self.processor.is_pair():
             truncate_seq_pair = lambda tokens_a, tokens_b, max_length : self.processor.truncate_seq_pair(tokens_a, tokens_b, max_length)
@@ -432,7 +434,7 @@ class Trainer(object):
         self.prepare_optimizer()
 
         self.preprare_eval_examples()
-        
+
         if self.args.do_train:
             self.train()
 
