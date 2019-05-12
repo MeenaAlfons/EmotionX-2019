@@ -9,7 +9,7 @@ def writeJson(obj, file_path):
     with open(file_path, 'w') as f:  
         json.dump(obj, f)
 
-def preprocess_train_dev(data_path, file_name, output_dir):
+def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
     # create output directory
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -20,17 +20,18 @@ def preprocess_train_dev(data_path, file_name, output_dir):
 
     num_utterances = 0
     
+    sanitize = lambda str : tokenize(str) if do_sanitize else str
     # Preprocess
     for n, diag in enumerate(source):
         num_utterances += len(diag)
         for item in diag:
-            item['utterance'] = tokenize(item['utterance'])
+            item['utterance'] = sanitize(item['utterance'])
             if 'utterance_de' in item:
-                item['utterance_de'] = tokenize(item['utterance_de'])
+                item['utterance_de'] = sanitize(item['utterance_de'])
             if 'utterance_fr' in item:
-                item['utterance_fr'] = tokenize(item['utterance_fr'])
+                item['utterance_fr'] = sanitize(item['utterance_fr'])
             if 'utterance_it' in item:
-                item['utterance_it'] = tokenize(item['utterance_it'])
+                item['utterance_it'] = sanitize(item['utterance_it'])
             # item['utterance'] = item['utterance']
 
     # Split train & dev
@@ -96,17 +97,11 @@ def merge_files(file_path1, file_path2, output_dir, output_file_name):
         json.dump(source1, outfile)
 
 
-if __name__ == '__main__':
-
-    DATA_PATH = sys.argv[1]
-    friend_data_path = os.path.join(DATA_PATH, 'Friends')
-    emotionpush_data_path = os.path.join(DATA_PATH, 'EmotionPush')
-    output_dir = os.path.join(DATA_PATH, "preprocessed")
-
+def process_EmotionX(friend_data_path, emotionpush_data_path, output_dir, do_sanitize):
     # train & dev
     print("Preprocess train and dev data")
-    friends_train_file, friends_dev_file, friends_smaller_dev_file, friends_train_1, friends_train_2 = preprocess_train_dev(friend_data_path, 'friends.augmented.json', output_dir)
-    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file, emotionpush_train_1, emotionpush_train_2 = preprocess_train_dev(emotionpush_data_path, 'emotionpush.augmented.json', output_dir)
+    friends_train_file, friends_dev_file, friends_smaller_dev_file, friends_train_1, friends_train_2 = preprocess_train_dev(friend_data_path, 'friends.augmented.json', output_dir, do_sanitize)
+    emotionpush_train_file, emotionpush_dev_file, emotionpush_smaller_dev_file, emotionpush_train_1, emotionpush_train_2 = preprocess_train_dev(emotionpush_data_path, 'emotionpush.augmented.json', output_dir, do_sanitize)
 
     # Combine Friends & EmotionPush
     print("Combine Friends & EmotionPush data")
@@ -116,3 +111,23 @@ if __name__ == '__main__':
     merge_files(friends_dev_file, emotionpush_dev_file, output_dir, "dev.json")
     merge_files(friends_smaller_dev_file, emotionpush_smaller_dev_file, output_dir, "smaller_dev.json")
     
+
+if __name__ == '__main__':
+
+    DATA_PATH = sys.argv[1]
+    friend_data_path = os.path.join(DATA_PATH, 'Friends')
+    emotionpush_data_path = os.path.join(DATA_PATH, 'EmotionPush')
+
+    process_EmotionX(
+        friend_data_path,
+        emotionpush_data_path
+        os.path.join(DATA_PATH, "preprocessed"),
+        True
+        )
+
+    process_EmotionX(
+        friend_data_path,
+        emotionpush_data_path
+        os.path.join(DATA_PATH, "preprocessed_raw"),
+        False
+        )
