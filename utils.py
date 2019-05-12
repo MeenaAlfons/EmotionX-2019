@@ -3,7 +3,7 @@ import logging
 import sys
 
 from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import matthews_corrcoef, f1_score, accuracy_score, confusion_matrix
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
@@ -189,15 +189,15 @@ def acc_and_f1(preds, labels):
     }
 
 def many_metrics(preds, labels):
-    acc = simple_accuracy(preds, labels)
     f1_micro = f1_score(y_true=labels, y_pred=preds, average='micro')
     f1_macro = f1_score(y_true=labels, y_pred=preds, average='macro')
     acc_score = accuracy_score(y_true=labels, y_pred=preds)
+    confusion = confusion_matrix(y_true=labels, y_pred=preds)
     return {
-        "acc": acc,
         "f1_micro": f1_micro,
         "f1_macro": f1_macro,
         "acc_score": acc_score,
+        "confusion_matrix": confusion
     }
 
 
