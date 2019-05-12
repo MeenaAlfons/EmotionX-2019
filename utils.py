@@ -25,7 +25,7 @@ class InputExample(object):
         self.label = label
     
     def __repr__(self):
-        return "InputExample()"
+        return "InputExample(text_a={} text_b={} label={})".format(text_a, text_b, label)
     def __str__(self):
         return "text_a={} text_b={} label={}".format(text_a, text_b, label)
         
