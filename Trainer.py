@@ -392,7 +392,7 @@ class Trainer(object):
             self.save_model(self.model, self.tokenizer, epoch_output_dir)
             
             # Evaluate Epoch
-            result = self.evaluate(False)
+            result, _ = self.evaluate(False)
             result['tr_loss'] = tr_loss/nb_tr_steps
             result['tr_loss_examples'] = tr_loss/nb_tr_examples
             self.save_result(result, epoch_output_dir)
