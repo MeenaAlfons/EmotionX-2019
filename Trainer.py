@@ -98,7 +98,7 @@ class Trainer(object):
 
         result['eval_loss'] = eval_loss
         result['eval_loss_examples'] = eval_loss_examples
-        return result
+        return result, preds
 
     def save_result(self, result, output_eval_dir):
         output_eval_file = os.path.join(output_eval_dir, "eval_results.txt")
@@ -439,5 +439,10 @@ class Trainer(object):
             self.train()
 
         if self.args.do_eval and (self.args.local_rank == -1 or torch.distributed.get_rank() == 0):
-            result = self.evaluate(False)
+            result, _ = self.evaluate(False)
             self.save_result(result, args.output_dir)
+
+        if self.args.do_run:
+            _, preds = self.evaluate(False)
+            self.processor.save(self.eval_examples, preds)
+
