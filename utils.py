@@ -230,3 +230,26 @@ def compute_metrics(metrics_name, preds, labels):
         return many_metrics(preds, labels)
     else:
         raise KeyError(metrics_name)
+
+
+def json_to_ids(file_name, labels):
+    
+    label_to_id = {}
+    for i, label in enumerate(labels):
+        label_to_id[label] = i
+    
+    with open(file_name, 'r') as f:
+        source = json.load(f)
+    
+    label_ids = []
+    for n, diag in enumerate(source):
+        for item in diag:
+            label_ids.append(label_to_id[item['emotion']])
+
+    return label_ids
+
+def evaluate_json(actual_file_name, prediction_file_name, labels):
+    y_true = json_to_ids(actual_file_name, labels)
+    y_pred = json_to_ids(prediction_file_name, labels)
+    result = many_metrics(y_pred, y_true)
+    print(result)
