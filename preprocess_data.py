@@ -120,14 +120,14 @@ if __name__ == '__main__':
 
     process_EmotionX(
         friend_data_path,
-        emotionpush_data_path
+        emotionpush_data_path,
         os.path.join(DATA_PATH, "preprocessed"),
         True
         )
 
     process_EmotionX(
         friend_data_path,
-        emotionpush_data_path
+        emotionpush_data_path,
         os.path.join(DATA_PATH, "preprocessed_raw"),
         False
         )
