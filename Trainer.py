@@ -108,7 +108,7 @@ class Trainer(object):
         self.model.eval()
         preds = []
 
-        for input_ids, input_mask, segment_ids, label_ids in tqdm(self.run_dataloader, desc="Evaluating"):
+        for input_ids, input_mask, segment_ids in tqdm(self.run_dataloader, desc="Evaluating"):
             input_ids = input_ids.to(self.device)
             input_mask = input_mask.to(self.device)
             segment_ids = segment_ids.to(self.device)
