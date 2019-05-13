@@ -447,7 +447,7 @@ class Others_OneSentence_Processor(BaseProcessor):
 
     def get_labels(self):
         """See base class."""
-        return ["non-neutral", "joy", "sadness", "surprise", "anger", "fear", "disgust"]
+        return ["joy", "sadness", "anger", "non-neutral",  "surprise",  "fear", "disgust"]
         
     def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
         item = diag[i]
