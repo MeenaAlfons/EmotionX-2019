@@ -100,6 +100,38 @@ class Trainer(object):
         result['eval_loss_examples'] = eval_loss_examples
         return result, preds
 
+    def run(self):
+        self.logger.info("***** Running *****")
+        self.logger.info("  Num examples = %d", len(self.eval_examples))
+        self.logger.info("  Batch size = %d", self.args.eval_batch_size)
+
+        self.model.eval()
+        preds = []
+
+        for input_ids, input_mask, segment_ids, label_ids in tqdm(self.eval_dataloader, desc="Evaluating"):
+            input_ids = input_ids.to(self.device)
+            input_mask = input_mask.to(self.device)
+            segment_ids = segment_ids.to(self.device)
+
+            with torch.no_grad():
+                logits = self.model(input_ids, segment_ids, input_mask, labels=None)
+
+            logits = logits.detach().cpu().numpy()
+            
+            if len(preds) == 0:
+                preds.append(logits)
+            else:
+                preds[0] = np.append(
+                    preds[0], logits, axis=0)
+
+        preds = preds[0]
+        if self.output_mode == "classification":
+            preds = np.argmax(preds, axis=1)
+        elif self.output_mode == "regression":
+            preds = np.squeeze(preds)
+    
+        return preds
+
     def save_result(self, result, output_eval_dir):
         output_eval_file = os.path.join(output_eval_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
@@ -443,6 +475,6 @@ class Trainer(object):
             self.save_result(result, args.output_dir)
 
         if self.args.do_run:
-            _, preds = self.evaluate(False)
+            preds = self.run(False)
             self.processor.save_dev(self.args.data_dir, self.eval_examples, preds)
 
