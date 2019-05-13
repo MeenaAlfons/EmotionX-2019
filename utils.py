@@ -154,13 +154,16 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
         assert len(input_mask) == max_seq_length
         assert len(segment_ids) == max_seq_length
 
-        if output_mode == "classification":
-            label_id = label_map[example.label]
-        elif output_mode == "regression":
-            label_id = float(example.label)
+        if examples.label:
+            if output_mode == "classification":
+                label_id = label_map[example.label]
+            elif output_mode == "regression":
+                label_id = float(example.label)
+            else:
+                raise KeyError(output_mode)
         else:
-            raise KeyError(output_mode)
-
+            label_id = None
+            
         if ex_index < 5:
             logger.info("*** Example ***")
             logger.info("guid: %s" % (example.guid))
