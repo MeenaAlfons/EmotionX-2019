@@ -62,7 +62,7 @@ def replace_acronyms(text, acronym_data):
     #row[2] contains meaning phrases
 
     def re_sub(pattern, repl, text):
-        return re.sub(pattern, repl, text, flags=FLAGS)
+        return re.sub(pattern, repl, text, flags=FLAGS|re.IGNORECASE)
 
     for i, row in enumerate(acronym_data):
         regex = "(?:^|(?<=[^\\w]))"+row[0]+"(?=[^\\w]|$)"

@@ -23,7 +23,7 @@ def load_acronym_data():
         ["ofc", "of course"],
         ["wtf", "what the fuck"],
         ["tho", "though"],
-        ["LoL", "laughing out loud"],
+        ["lol", "laughing out loud"],
         ["brb", "be right back"],
         ["btw", "by the way"],
         ["cya", "see You"],
