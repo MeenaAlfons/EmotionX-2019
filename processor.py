@@ -452,7 +452,11 @@ class Others_OneSentence_Processor(BaseProcessor):
     def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
         item = diag[i]
         text_a = item["utterance"]
-        label = item["emotion"]
+        if "emotion" in item:
+            label = item["emotion"]
+        else:
+            label = None
+            
         if label != "neutral":
             examples = [
                 InputExample(guid="{}-{}".format(guid, 'en'), text_a=item["utterance"], label=label),
