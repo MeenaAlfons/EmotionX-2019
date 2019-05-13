@@ -65,8 +65,8 @@ def replace_acronyms(text, acronym_data):
         return re.sub(pattern, repl, text, flags=FLAGS)
 
     for i, row in enumerate(acronym_data):
-        acronym_re = re.sub(r".", "\\\1", row[0], flags=FLAGS)
-        text = re_sub("(?:^|(?<=[^\\w])){}(?=[^\\w]|$)".format(acronym_re), row[1], text)
+        regex = "(?:^|(?<=[^\\w]))"+row[0]+"(?=[^\\w]|$)"
+        text = re_sub(regex, row[1], text)
 
     return text
 
