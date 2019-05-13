@@ -395,8 +395,11 @@ class Majority_OneSentence_Processor(BaseProcessor):
     def _create_examples_of_item(self, guid, diag, i, set_type, augmented):
         item = diag[i]
         text_a = item["utterance"]
-        label = "yes" if (item["emotion"] == "neutral") else "no"
-        
+        if "emotion" in item:
+            label = "yes" if (item["emotion"] == "neutral") else "no"
+        else:
+            label = None 
+            
         examples = [
             InputExample(guid="{}-{}".format(guid, 'en'), text_a=item["utterance"], label=label),
         ]
