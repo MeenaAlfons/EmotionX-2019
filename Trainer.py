@@ -324,19 +324,19 @@ class Trainer(object):
         if self.processor.is_pair():
             truncate_seq_pair = lambda tokens_a, tokens_b, max_length : self.processor.truncate_seq_pair(tokens_a, tokens_b, max_length)
             self.run_features = convert_examples_to_features(
-                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.run_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
                 self.logger,
                 input_length_arr,
                 truncate_seq_pair=truncate_seq_pair)
         else:
             self.run_features = convert_examples_to_features(
-                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.run_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
                 self.logger,
                 input_length_arr)
             
-        all_input_ids = torch.tensor([f.input_ids for f in self.eval_features], dtype=torch.long)
-        all_input_mask = torch.tensor([f.input_mask for f in self.eval_features], dtype=torch.long)
-        all_segment_ids = torch.tensor([f.segment_ids for f in self.eval_features], dtype=torch.long)
+        all_input_ids = torch.tensor([f.input_ids for f in self.run_features], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask for f in self.run_features], dtype=torch.long)
+        all_segment_ids = torch.tensor([f.segment_ids for f in self.run_features], dtype=torch.long)
 
         eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids)
         # Run prediction for full data
@@ -492,7 +492,8 @@ class Trainer(object):
             self.prepare_train_examples()
             self.prepare_optimizer()
 
-        self.preprare_eval_examples()
+        if self.args.do_train or self.args.do_eval:
+            self.preprare_eval_examples()
 
         if self.args.do_train:
             self.train()
@@ -504,5 +505,5 @@ class Trainer(object):
         if self.args.do_run:
             self.prepare_run_examples()
             preds = self.run(False)
-            self.processor.save_dev(self.args.data_dir, self.eval_examples, preds)
+            self.processor.save_dev(self.args.data_dir, self.run_examples, preds)
 
