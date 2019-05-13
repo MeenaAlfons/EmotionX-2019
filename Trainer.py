@@ -504,6 +504,6 @@ class Trainer(object):
 
         if self.args.do_run:
             self.prepare_run_examples()
-            preds = self.run(False)
+            preds = self.run()
             self.processor.save_dev(self.args.data_dir, self.run_examples, preds)
 
