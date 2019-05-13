@@ -1,5 +1,6 @@
 
 import json
+import csv
 import os
 import sys
 import random
@@ -8,6 +9,16 @@ from preproccess import tokenize
 def writeJson(obj, file_path):
     with open(file_path, 'w') as f:  
         json.dump(obj, f)
+
+def load_acronym_data(slang_filename):
+    slang_data = []
+    with open(slang_filename,'rb') as exRtFile:
+        exchReader = csv.reader(exRtFile, delimiter='`', quoting=csv.QUOTE_NONE)
+    
+    for row in exchReader:
+        slang_data.append(row)
+
+    return slang_data
 
 def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
     # create output directory
@@ -20,7 +31,9 @@ def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
 
     num_utterances = 0
     
-    sanitize = lambda str : tokenize(str) if do_sanitize else str
+    acronym_data = load_acronym_data('./slang_dict.doc')
+
+    sanitize = lambda str : tokenize(str, acronym_data) if do_sanitize else str
     # Preprocess
     for n, diag in enumerate(source):
         num_utterances += len(diag)

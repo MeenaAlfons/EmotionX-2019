@@ -57,7 +57,21 @@ def emojis(text):
     return text
 
 
-def tokenize(text):
+def replace_acronyms(text, acronym_data):
+    #row[1] contains Acronyms
+    #row[2] contains meaning phrases
+
+    def re_sub(pattern, repl, text):
+        return re.sub(pattern, repl, text, flags=FLAGS)
+
+    for i, row in enumerate(acronym_data):
+        acronym_re = re.sub(r".", "\\\1", row[1], flags=FLAGS)
+        text = re_sub("(?<=^|[^\\w]){}(?=[^\\w]|$)".format(acronym_re), row[2], text)
+
+    return text
+
+
+def tokenize(text, acronym_data):
     # Different regex parts for smiley faces
     eyes = r"[8:=;]"
     nose = r"['`\-]?"
@@ -106,11 +120,15 @@ def tokenize(text):
     # find emoji
     text = emojis(text)
 
+    # Replace acronyms
+    text = replace_acronyms(text, acronym_data)
+
     ## -- I just don't understand why the Ruby script adds <allcaps> to everything so I limited the selection.
     # text = re_sub(r"([^a-z0-9()<>'`\-]){2,}", allcaps)
     # text = re_sub(r"([A-Z]){2,}", allcaps)
     # text = re_sub(r"(\w)\1{2,}", repeatchar)
     text = re_sub(r"(\w)\1{2,}(\S*)\b", r"\1\2 <repeat>")
+        
     try:
         # remove unicode
         text = re.sub(r"\u0092|\x92", "'", text)
