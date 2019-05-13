@@ -206,7 +206,9 @@ def many_metrics(preds, labels):
         "f1_micro": f1_micro,
         "f1_macro": f1_macro,
         "acc_score": acc_score,
-        "confusion_matrix": confusion
+        "confusion_matrix": confusion,
+        "report": report,
+        "acc_per_class": confusion_matrix.diag()/confusion_matrix.sum(1)
     }
 
 
