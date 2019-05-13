@@ -3,6 +3,8 @@ import logging
 import sys
 import json
 
+import numpy as np
+
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import matthews_corrcoef, f1_score, accuracy_score, confusion_matrix, classification_report
 
