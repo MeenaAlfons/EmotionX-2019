@@ -121,11 +121,11 @@ def tokenize(text, acronym_data):
     text = emojis(text)
 
     # Replace acronyms
-    before = text
+    # before = text
     text = replace_acronyms(text, acronym_data)
-    if (before !=  text):    
-        print("Before acronyms ```` {}".format(before))
-        print("After acronyms ```` {}".format(after))
+    # if (before !=  text):    
+    #     print("Before acronyms ```` {}".format(before))
+    #     print("After acronyms ```` {}".format(after))
 
     ## -- I just don't understand why the Ruby script adds <allcaps> to everything so I limited the selection.
     # text = re_sub(r"([^a-z0-9()<>'`\-]){2,}", allcaps)
