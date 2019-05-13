@@ -429,9 +429,9 @@ class Trainer(object):
 
         self.prepare_model()
 
-        self.prepare_train_examples()
-
-        self.prepare_optimizer()
+        if self.args.do_train:
+            self.prepare_train_examples()
+            self.prepare_optimizer()
 
         self.preprare_eval_examples()
 
