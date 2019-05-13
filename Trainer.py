@@ -102,13 +102,13 @@ class Trainer(object):
 
     def run(self):
         self.logger.info("***** Running *****")
-        self.logger.info("  Num examples = %d", len(self.eval_examples))
+        self.logger.info("  Num examples = %d", len(self.run_examples))
         self.logger.info("  Batch size = %d", self.args.eval_batch_size)
 
         self.model.eval()
         preds = []
 
-        for input_ids, input_mask, segment_ids, label_ids in tqdm(self.eval_dataloader, desc="Evaluating"):
+        for input_ids, input_mask, segment_ids, label_ids in tqdm(self.run_dataloader, desc="Evaluating"):
             input_ids = input_ids.to(self.device)
             input_mask = input_mask.to(self.device)
             segment_ids = segment_ids.to(self.device)
@@ -317,6 +317,33 @@ class Trainer(object):
         eval_sampler = SequentialSampler(eval_data)
         self.eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
 
+    def prepare_run_examples(self):
+        self.run_examples = self.processor.get_dev_examples(self.args.data_dir)
+        
+        input_length_arr = []
+        if self.processor.is_pair():
+            truncate_seq_pair = lambda tokens_a, tokens_b, max_length : self.processor.truncate_seq_pair(tokens_a, tokens_b, max_length)
+            self.run_features = convert_examples_to_features(
+                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr,
+                truncate_seq_pair=truncate_seq_pair)
+        else:
+            self.run_features = convert_examples_to_features(
+                self.eval_examples, self.label_list, self.args.max_seq_length, self.tokenizer, self.output_mode,
+                self.logger,
+                input_length_arr)
+            
+        all_input_ids = torch.tensor([f.input_ids for f in self.eval_features], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask for f in self.eval_features], dtype=torch.long)
+        all_segment_ids = torch.tensor([f.segment_ids for f in self.eval_features], dtype=torch.long)
+
+        eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids)
+        # Run prediction for full data
+        eval_sampler = SequentialSampler(eval_data)
+        self.run_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
+
+
     def train(self):
         self.logger.info("***** Running training *****")
         self.logger.info("  Num examples = %d", len(self.train_examples))
@@ -475,6 +502,7 @@ class Trainer(object):
             self.save_result(result, args.output_dir)
 
         if self.args.do_run:
+            self.prepare_run_examples()
             preds = self.run(False)
             self.processor.save_dev(self.args.data_dir, self.eval_examples, preds)
 
