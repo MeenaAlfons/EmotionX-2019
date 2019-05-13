@@ -10,9 +10,33 @@ def writeJson(obj, file_path):
     with open(file_path, 'w') as f:  
         json.dump(obj, f)
 
-def load_acronym_data(slang_filename):
+def load_acronym_data():
+    return [
+        ["sth", "something"],
+        ["stfu", "shut the fuck up"],
+        ["smh", "shaking my head"],
+        ["lmfao", "laughing my fucking ass off."],
+        ["rofl", "rolling on floor laughing"],
+        ["lmk", "let me know"],
+        ["nvm", "never mind"],
+        ["ikr", "i know, right"],
+        ["ofc", "of course"],
+        ["wtf", "what the fuck"],
+        ["tho", "though"],
+        ["LoL", "laughing out loud"],
+        ["brb", "be right back"],
+        ["btw", "by the way"],
+        ["cya", "see You"],
+        ["gr8", "great"],
+        ["irl", "in real life"],
+        ["lmao", "laughing my ass off"],
+        ["jk", "just kidding"],
+    ]
+
+def load_slang_data(slang_filename):
     slang_data = []
-    with open(slang_filename,'rb') as exRtFile:
+
+    with open(slang_filename, 'rb') as exRtFile:
         exchReader = csv.reader(exRtFile, delimiter='`', quoting=csv.QUOTE_NONE)
     
     for row in exchReader:
@@ -31,7 +55,7 @@ def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
 
     num_utterances = 0
     
-    acronym_data = load_acronym_data('./slang_dict.doc')
+    acronym_data = load_acronym_data()
 
     sanitize = lambda str : tokenize(str, acronym_data) if do_sanitize else str
     # Preprocess
