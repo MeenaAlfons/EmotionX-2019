@@ -369,7 +369,7 @@ class BaseProcessor(DataProcessor):
                     item_examples = self._create_examples_of_item(guid, diag, j, set_type, augmented);
                     examples.extend(item_examples)
                     
-                    if len(item_examples) > 0 and hasattr(item_examples[0], "label"):
+                    if len(item_examples) > 0 and item_examples[0].label:
                         stats[item_examples[0].label] += 1
                         augmented_stats[item_examples[0].label] += len(item_examples)
                     
