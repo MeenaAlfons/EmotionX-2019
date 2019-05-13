@@ -369,7 +369,7 @@ class BaseProcessor(DataProcessor):
                     item_examples = self._create_examples_of_item(guid, diag, j, set_type, augmented);
                     examples.extend(item_examples)
                     
-                    if len(item_examples) > 0:
+                    if len(item_examples) > 0 and hasattr(item_examples[0], "label"):
                         stats[item_examples[0].label] += 1
                         augmented_stats[item_examples[0].label] += len(item_examples)
                     
@@ -399,7 +399,7 @@ class Majority_OneSentence_Processor(BaseProcessor):
             label = "yes" if (item["emotion"] == "neutral") else "no"
         else:
             label = None 
-            
+
         examples = [
             InputExample(guid="{}-{}".format(guid, 'en'), text_a=item["utterance"], label=label),
         ]
