@@ -22,6 +22,6 @@ if __name__ == '__main__':
     process_eval(
         friend_data_path,
         emotionpush_data_path,
-        os.path.join(DATA_PATH, "preprocessed"),
+        DATA_PATH,
         True
         )
