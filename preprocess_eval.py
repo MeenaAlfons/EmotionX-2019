@@ -4,7 +4,7 @@ import csv
 import os
 import sys
 import random
-from preproccess_data import preprocess_train_dev
+from preprocess_data import preprocess_train_dev
 
 def process_eval(friend_data_path, emotionpush_data_path, output_dir, do_sanitize):
     # train & dev
