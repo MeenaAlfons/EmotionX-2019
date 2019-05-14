@@ -102,6 +102,9 @@ def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
         train_2.append(source[i])
         
     # Write output
+    all_file_path = os.path.join(output_dir, "{}_{}".format("all", file_name))
+    writeJson(source, all_file_path)
+    
     train_file_path = os.path.join(output_dir, "{}_{}".format("train", file_name))
     writeJson(train, train_file_path)
     
