@@ -62,6 +62,7 @@ def preprocess_train_dev(data_path, file_name, output_dir, do_sanitize=True):
     for n, diag in enumerate(source):
         num_utterances += len(diag)
         for item in diag:
+            item['origin'] = item['utterance']
             item['utterance'] = sanitize(item['utterance'])
             if 'utterance_de' in item:
                 item['utterance_de'] = sanitize(item['utterance_de'])
