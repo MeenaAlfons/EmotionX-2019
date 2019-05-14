@@ -126,7 +126,7 @@ class Trainer(object):
 
         preds = preds[0]
         if self.output_mode == "classification":
-            preds = np.argmax(preds, axis=1)
+            preds = np.argmax(preds[:,:self.args.included_labels], axis=1)
         elif self.output_mode == "regression":
             preds = np.squeeze(preds)
     
