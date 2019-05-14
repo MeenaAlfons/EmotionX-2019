@@ -8,7 +8,7 @@ from preproccess import tokenize
 
 def writeJson(obj, file_path):
     with open(file_path, 'w') as f:  
-        json.dump(obj, f)
+        json.dump(obj, f, indent=4)
 
 def load_acronym_data():
     return [
