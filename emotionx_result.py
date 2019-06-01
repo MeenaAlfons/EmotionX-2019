@@ -23,7 +23,7 @@ def process_result(data_path, source_file_name, result_file_name):
             "email": "me@meenaalfons.com"
         })
         result.append(dialogs)
-        
+
         with open(os.path.join(data_path, result_file_name), 'w') as result_file:
             json.dump(result, result_file, indent=4)
     
@@ -32,4 +32,5 @@ if __name__ == '__main__':
     DATA_PATH = sys.argv[1]
 
     process_result(DATA_PATH, 'result_friends_others_dev.json', 'friends_pred.json')
+    process_result(DATA_PATH, 'result_emotionpush_others_dev.json', 'emotionpush_pred.json')
 
