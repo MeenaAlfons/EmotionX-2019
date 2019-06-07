@@ -235,7 +235,7 @@ class Trainer(object):
                                 weight_decay=0.01)
         
     def prepare_train_examples(self):
-        self.train_examples = self.processor.get_train_examples(self.args.data_dir)
+        self.train_examples = self.processor.get_train_examples(self.args.data_dir, self.args.train_file)
         self.num_train_optimization_steps = int(
             len(self.train_examples) / self.args.train_batch_size / self.args.gradient_accumulation_steps) * self.args.num_train_epochs
         if self.args.local_rank != -1:
@@ -281,7 +281,7 @@ class Trainer(object):
         self.train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=self.args.train_batch_size)
 
     def preprare_eval_examples(self):
-        self.eval_examples = self.processor.get_dev_examples(self.args.data_dir)
+        self.eval_examples = self.processor.get_dev_examples(self.args.data_dir, self.args.dev_file)
         
         input_length_arr = []
         if self.processor.is_pair():
@@ -318,7 +318,7 @@ class Trainer(object):
         self.eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
 
     def prepare_run_examples(self):
-        self.run_examples = self.processor.get_dev_examples(self.args.data_dir)
+        self.run_examples = self.processor.get_dev_examples(self.args.data_dir, self.args.dev_file)
         
         input_length_arr = []
         if self.processor.is_pair():
@@ -475,10 +475,13 @@ class Trainer(object):
         if not self.args.do_train and not self.args.do_eval and not self.args.do_run:
             raise ValueError("At least one of `do_train`, `do_eval` or `do_run` must be True.")
 
-        if os.path.exists(self.args.output_dir) and os.listdir(self.args.output_dir) and self.args.do_train:
-            raise ValueError("Output directory ({}) already exists and is not empty.".format(self.args.output_dir))
-        if not os.path.exists(self.args.output_dir):
-            os.makedirs(self.args.output_dir)
+        if self.args.do_train or self.args.do_eval:
+            if not self.args.output_dir:
+                raise ValueError("You must specify output directory")
+            elif os.path.exists(self.args.output_dir) and os.listdir(self.args.output_dir):
+                raise ValueError("Output directory ({}) already exists and is not empty.".format(self.args.output_dir))
+            if not os.path.exists(self.args.output_dir):
+                os.makedirs(self.args.output_dir)
 
         self.processor = self.args.processor()
         self.output_mode = self.args.output_mode
@@ -505,5 +508,5 @@ class Trainer(object):
         if self.args.do_run:
             self.prepare_run_examples()
             preds = self.run()
-            self.processor.save_dev(self.args.data_dir, self.run_examples, preds)
+            self.processor.save_dev(self.args.data_dir, self.args.dev_file, self.args.result_file, self.run_examples, preds)
 

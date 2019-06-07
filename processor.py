@@ -9,11 +9,11 @@ class EmotionX2019Processor(DataProcessor):
     """Processor for the RTE data set (GLUE version)."""
     
         
-    def get_train_examples(self, data_dir):
+    def get_train_examples(self, data_dir, filename):
         """See base class."""
         return self._create_examples(os.path.join(data_dir, "train.json"), "train")
 
-    def get_dev_examples(self, data_dir):
+    def get_dev_examples(self, data_dir, filename):
         """See base class."""
         return self._create_examples(os.path.join(data_dir, "dev.json"), "dev")
 
@@ -298,15 +298,14 @@ class Augmented_PrevSameSpeaker_Processor(EmotionX2019_TwoSequence_Processor):
 
 
 class BaseProcessor(DataProcessor):
-    """Processor for the RTE data set (GLUE version)."""
     
-    def get_train_examples(self, data_dir):
+    def get_train_examples(self, data_dir, filename):
         """See base class."""
-        return self._create_examples(os.path.join(data_dir, "train.json"), "train", True)
+        return self._create_examples(os.path.join(data_dir, filename), "train", True)
 
-    def get_dev_examples(self, data_dir):
+    def get_dev_examples(self, data_dir, filename):
         """See base class."""
-        return self._create_examples(os.path.join(data_dir, "dev.json"), "dev", False)
+        return self._create_examples(os.path.join(data_dir, filename), "dev", False)
 
     def get_labels(self):
         """See base class."""
@@ -440,7 +439,8 @@ class Majority_OneSentence_Processor(BaseProcessor):
                 result[diag_idx][item_idx]['emotion'] = "neutral" 
             
         with open(result_file_name, 'w') as f:  
-            json.dump(result, f)
+            json.dump(result, f, indent=4)
+            
     
 class Others_OneSentence_Processor(BaseProcessor):
     """Processor for the RTE data set (GLUE version)."""
@@ -473,14 +473,14 @@ class Others_OneSentence_Processor(BaseProcessor):
             
         return examples
 
-    def save_dev(self, data_dir, examples, preds):
+    def save_dev(self, data_dir, dev_file, result_file, examples, preds):
         self.save(
-            os.path.join(data_dir, "result_majority_dev.json"),
-            os.path.join(data_dir, "result_others_dev.json"),
+            os.path.join(data_dir, dev_file),
+            os.path.join(data_dir, result_file),
             examples,
             preds
             )
-    
+
     def save(self, source_file_name, result_file_name, examples, preds):
         labels = self.get_labels()
         result = []
@@ -499,13 +499,4 @@ class Others_OneSentence_Processor(BaseProcessor):
             result[diag_idx][item_idx]['emotion'] = labels[pred]
             
         with open(result_file_name, 'w') as f:  
-            json.dump(result, f)
-            
-
-class Others_OneSentence_Processor_Level_2(Others_OneSentence_Processor):
-    """Processor for the RTE data set (GLUE version)."""
-
-    def get_dev_examples(self, data_dir):
-        """See base class."""
-        return self._create_examples(os.path.join(data_dir, "result_majority_dev.json"), "dev", False)
-        
+            json.dump(result, f, indent=4)
