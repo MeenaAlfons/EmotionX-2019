@@ -139,6 +139,7 @@ args.train_batch_size = 32
 args.eval_batch_size = 32
 args.do_train = True
 args.do_eval = False
+args.do_run = False
 args.num_train_epochs = 8.0
 args.max_seq_length = 256
 args.processor = Majority_OneSentence_Processor
@@ -186,6 +187,7 @@ args.train_batch_size = 32
 args.eval_batch_size = 32
 args.do_train = True
 args.do_eval = False
+args.do_run = False
 args.num_train_epochs = 8.0
 args.max_seq_length = 256
 args.processor = Majority_OneSentence_Processor
@@ -201,7 +203,91 @@ trainer.execute()
 
 **Train Friends Others Classifier**
 
+```python
+args = Args()
+
+args.bert_model = 'bert-base-uncased'
+args.do_lower_case = True
+args.warmup_proportion = 0.1
+args.cache_dir = "./cache"
+args.no_cuda = False
+args.local_rank = -1
+args.fp16 = False
+args.loss_scale = 0
+args.gradient_accumulation_steps = 1
+args.server_ip = ''
+args.server_port = ''
+args.output_mode = "classification"
+args.data_dir = './dataset/preprocessed/'
+args.save_model_steps = 2000
+args.resume_epochs = 0
+args.resume_steps = 0
+
+# Important configurations
+args.data_dir = './dataset/preprocessed/'
+args.train_file = 'train_friends.augmented.json'
+args.dev_file = 'dev_friends.augmented.json'
+args.train_batch_size = 32
+args.eval_batch_size = 32
+args.do_train = True
+args.do_eval = False
+args.do_run = False
+args.num_train_epochs = 8.0
+args.max_seq_length = 256
+args.processor = Others_OneSentence_Processor
+args.output_dir = os.path.join(model_dir, 'friends_others')
+args.resume_dir = None
+
+args.learning_rate = 1e-5
+args.seed = 1991
+
+trainer = Trainer(args)
+trainer.execute()
+```
+
 **Train EmotionPush Others Classifier**
+
+```python
+args = Args()
+
+args.bert_model = 'bert-base-uncased'
+args.do_lower_case = True
+args.warmup_proportion = 0.1
+args.cache_dir = "./cache"
+args.no_cuda = False
+args.local_rank = -1
+args.fp16 = False
+args.loss_scale = 0
+args.gradient_accumulation_steps = 1
+args.server_ip = ''
+args.server_port = ''
+args.output_mode = "classification"
+args.data_dir = './dataset/preprocessed/'
+args.save_model_steps = 2000
+args.resume_epochs = 0
+args.resume_steps = 0
+
+# Important configurations
+args.data_dir = './dataset/preprocessed/'
+args.train_file = 'train_emotionpush.augmented.json'
+args.dev_file = 'dev_emotionpush.augmented.json'
+args.train_batch_size = 32
+args.eval_batch_size = 32
+args.do_train = True
+args.do_eval = False
+args.do_run = False
+args.num_train_epochs = 8.0
+args.max_seq_length = 256
+args.processor = Others_OneSentence_Processor
+args.output_dir = os.path.join(model_dir, 'emotionpush_others')
+args.resume_dir = None
+
+args.learning_rate = 1e-5
+args.seed = 1991
+
+trainer = Trainer(args)
+trainer.execute()
+```
 
 ### Run Solution
 
