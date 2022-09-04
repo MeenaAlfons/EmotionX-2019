@@ -1,8 +1,12 @@
-# EmotionX-2019
+# EmotionX-AlexU: Cascade BERT-based Emotion Classifier
 
 ## Abstract
 
 In this paper, we present a solution for the Dialogue Emotion Recognition Challenge, EmotionX-2019 based onBidirectional Encoder Representations from Transformer (BERT) which is the state-of-the-art for Natural Language Processing with fine-tuning on dialogue utterance classification. We use cascade classification to tackle the dominance of a majority class present in the data. Cascading the classifiers  allowed  to improve our reported accuracy measures for emotion prediction in text.
+
+[EmotionX-AlexU: Cascade BERT-based Emotion Classifier](./EmotionX_2019___Cascade_BERT_based_Emotion_Classifier.pdf) by Meena Alfons, Marwan Torki, and Nagwa El-Makky
+
+Submitted in [EmotionX-2019](https://sites.google.com/view/emotionx2019/home), made it to the [leaderboard](https://sites.google.com/view/emotionx2019/leaderboards), and presented in [SocialNLP](https://sites.google.com/site/socialnlp2019) @ IJCAI 2019.
 
 # How To Run
 
